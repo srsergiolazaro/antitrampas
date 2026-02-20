@@ -1,0 +1,4 @@
+node_modules/
+.browser-cache/
+.git/
+evidencias/

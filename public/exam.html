@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Asegurado V3</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+            /* Previene selección de texto */
+            overflow: hidden;
+            /* Ocultar scrollbars */
+        }
+
+        .overlay-lock {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .btn-start {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .exam-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            display: none;
+            /* Oculto hasta que se conecte el agente */
+        }
+
+        .banner {
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .status.disconnected {
+            background: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="connection-status" class="status disconnected">Agente Desconectado</div>
+
+    <div class="overlay-lock" id="lock-screen">
+        <h1 id="lock-title">Esperando al Guardian...</h1>
+
+        <p id="lock-desc"
+            style="max-width: 600px; text-align: center; margin-bottom: 20px; font-size: 1.1em; line-height: 1.5;">
+            Para asegurar la integridad de este examen, requerimos ejecutar nuestro <b>Companion Agent Local</b> y
+            mantenerlo abierto en segundo plano.<br><br>
+            1. Descarga el repositorio o clónalo.<br>
+            2. Abre tu terminal y ejecuta <code>bun install</code> y luego <code>bun start</code>.<br>
+            3. Esta página detectará automáticamente la conexión.
+        </p>
+
+        <a href="https://github.com/srsergiolazaro/antitrampas/archive/refs/heads/main.zip" target="_blank"
+            class="btn-start" style="text-decoration:none; background-color: #3498db; margin-bottom: 20px;"
+            id="btn-download">1. Descargar Agente (.zip)</a>
+
+        <button class="btn-start" id="btn-fullscreen" style="display: none;" onclick="enterExam()">2. Comenzar Examen
+            (F11)</button>
+    </div>
+
+    <div class="exam-container" id="exam-content">
+        <div class="banner">Ojo: Estás siendo monitoreado por el agente local. Si sales o minimizas, pierdes.</div>
+        <h1>Examen de Matemáticas</h1>
+        <p>... Preguntas del Examen ...</p>
+        <button style="padding: 10px; background: blue; color: white;" onclick="finishExam()">Entregar Examen</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let isExamActive = false;
+        let focusViolations = 0;
+
+        function connectToAgent() {
+            ws = new WebSocket("ws://localhost:3333/ws");
+
+            ws.onopen = () => {
+                console.log("Conectado al agente local.");
+                document.getElementById("connection-status").className = "status connected";
+                document.getElementById("connection-status").textContent = "Agente Conectado";
+
+                document.getElementById("lock-title").textContent = "Entorno Seguro Listo";
+                document.getElementById("lock-desc").innerHTML = "Conexión WebSocket bidireccional establecida exitosamente.<br>El sistema vigilará el SO y exigirá pantalla completa. Haz clic abajo para iniciar.";
+                document.getElementById("btn-download").style.display = "none";
+                document.getElementById("btn-fullscreen").style.display = "block";
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.event === "SYSTEM_REJECTED") {
+                    alert("El agente ha rechazado tu entorno: " + data.reason);
+                    isExamActive = false;
+                }
+                if (data.event === "AGENT_LOCKED_DOWN") {
+                    console.log("Agente bloqueó el SO. Todo listo.");
+                }
+            };
+
+            ws.onclose = () => {
+                document.getElementById("connection-status").className = "status disconnected";
+                document.getElementById("connection-status").textContent = "Agente Desconectado";
+                if (isExamActive) {
+                    alert("¡Te desconectaste del Agente Central! Examen suspendido.");
+                    location.reload();
+                } else {
+                    // Reintentar si aún no empezó
+                    setTimeout(connectToAgent, 2000);
+                }
+            };
+        }
+
+        // Iniciar el examen (Pide FullScreen y le avisa al Agente)
+        async function enterExam() {
+            try {
+                await document.documentElement.requestFullscreen();
+                isExamActive = true;
+                document.getElementById("lock-screen").style.display = "none";
+                document.getElementById("exam-content").style.display = "block";
+
+                // Avisar al backend para que inicie el killLoop y bloquee el portapapeles
+                ws.send(JSON.stringify({ event: "EXAM_STARTED" }));
+            } catch (err) {
+                alert("Debes permitir pantalla completa para dar el examen.");
+            }
+        }
+
+        // Terminar examen
+        function finishExam() {
+            isExamActive = false;
+            ws.send(JSON.stringify({ event: "EXAM_FINISHED" }));
+            alert("Examen finalizado de forma segura.");
+            document.exitFullscreen();
+            location.reload();
+        }
+
+        // ----- TRACKERS DE TRAMPAS EN EL NAVEGADOR ----- //
+
+        function reportCheating(reason) {
+            if (!isExamActive || !ws || ws.readyState !== WebSocket.OPEN) return;
+            focusViolations++;
+            console.error("REPORTANDO TRAMPA: ", reason);
+            // Enviar al agente local para que grabe video o apague algo
+            ws.send(JSON.stringify({ event: "CHEATING_DETECTED", reason: reason }));
+
+            if (focusViolations > 4) {
+                alert("Has violado las normas demasiadas veces. Examen anulado.");
+                finishExam();
+            }
+        }
+
+        // 1. Pérdida de Foco (Alt Tab / Touchpad Gesture de cambiar app)
+        window.addEventListener("blur", () => {
+            reportCheating("Pérdida de foco en la ventana del navegador (Blur).");
+        });
+
+        // 2. Ocultar Pestaña / Cambiar de Tab
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                reportCheating("Pestaña ocultada o cambio de Tab (Visibility Hidden).");
+            }
+        });
+
+        // 3. Salida de Pantalla Completa (ESC)
+        document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement && isExamActive) {
+                reportCheating("Intento de salida de Pantalla Completa.");
+                // Forzar volver a pantalla completa
+                document.documentElement.requestFullscreen().catch(() => console.log("No pudo reconectar FS"));
+            }
+        });
+
+        // 4. Prevenir Hotkeys del navegador o extensiones
+        document.addEventListener("keydown", (e) => {
+            if (!isExamActive) return;
+            if (e.ctrlKey || e.altKey || e.metaKey || e.key === "F11") {
+                e.preventDefault();
+            }
+        });
+
+        // Iniciar intento de conexión al abrir
+        connectToAgent();
+    </script>
+</body>
+
+</html>

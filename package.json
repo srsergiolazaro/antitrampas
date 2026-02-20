@@ -1,0 +1,17 @@
+{
+  "name": "antichetos",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "private": true,
+  "scripts": {
+    "start": "bun run index.ts",
+    "build": "bun build ./index.ts --outdir ./dist",
+    "compile": "bun build ./index.ts --compile --outfile integrity-agent"
+  },
+  "type": "module"
+}
