@@ -13,6 +13,9 @@ async function monitorLoop() {
 async function bootstrap() {
     console.log("🚀 Iniciando Integrity Agent (Hardened & Orchestrated)...");
 
+    // Validar permisos de Administrador obligatoriamente antes de iniciar
+    checkPrivileges();
+
     // Iniciar servidor local (WS Hub y Archivos Estáticos)
     startServer();
 
