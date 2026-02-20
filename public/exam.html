@@ -100,26 +100,46 @@
 
         <p id="lock-desc"
             style="max-width: 600px; text-align: center; margin-bottom: 20px; font-size: 1.1em; line-height: 1.5;">
-            Para asegurar la integridad de este examen, requerimos ejecutar nuestro <b>Companion Agent Local</b> y
-            mantenerlo abierto en segundo plano.<br><br>
-            1. Descarga el repositorio o clónalo.<br>
-            2. Abre tu terminal y ejecuta <code>bun install</code> y luego <code>bun start</code>.<br>
-            3. Esta página detectará automáticamente la conexión.
+            Para asegurar la integridad de este examen, requerimos ejecutar nuestro <b>Guardian Agent Local</b>.<br><br>
+            1. Descarga el ejecutable desde nuestros servidores de GitHub.<br>
+            2. Ábrelo (probablemente Windows te pida confirmar porque es nuevo).<br>
+            3. Esta página detectará automáticamente la conexión. Ningún navegador extra se abrirá.
         </p>
 
-        <a href="https://github.com/srsergiolazaro/antitrampas/archive/refs/heads/main.zip" target="_blank"
-            class="btn-start" style="text-decoration:none; background-color: #3498db; margin-bottom: 20px;"
-            id="btn-download">1. Descargar Agente (.zip)</a>
+        <a href="https://github.com/srsergiolazaro/antitrampas/releases/latest/download/integrity-agent.exe"
+            target="_blank" class="btn-start"
+            style="text-decoration:none; background-color: #3498db; margin-bottom: 20px;" id="btn-download">1. Descargar
+            Agente (.exe)</a>
 
         <button class="btn-start" id="btn-fullscreen" style="display: none;" onclick="enterExam()">2. Comenzar Examen
             (F11)</button>
     </div>
 
-    <div class="exam-container" id="exam-content">
+    <div class="exam-container" id="exam-content" style="max-height: 90vh; overflow-y: auto;">
         <div class="banner">Ojo: Estás siendo monitoreado por el agente local. Si sales o minimizas, pierdes.</div>
-        <h1>Examen de Matemáticas</h1>
-        <p>... Preguntas del Examen ...</p>
-        <button style="padding: 10px; background: blue; color: white;" onclick="finishExam()">Entregar Examen</button>
+        <h1>Examen de Matemáticas Avanzadas</h1>
+        <hr>
+        <div class="questions" style="margin-bottom: 30px; line-height: 1.8;">
+            <p><b>1.</b> ¿Cuál es la derivada de f(x) = x²? <br><input type="text" placeholder="Tu respuesta..."></p>
+            <p><b>2.</b> Resuelve la ecuación: 2x + 5 = 15 <br><input type="text" placeholder="Tu respuesta..."></p>
+            <p><b>3.</b> ¿Cuál es el valor de Pi (π) redondeado a cuatro decimales? <br><input type="text"
+                    placeholder="Tu respuesta..."></p>
+            <p><b>4.</b> Factoriza la siguiente expresión: x² - 9 <br><input type="text" placeholder="Tu respuesta...">
+            </p>
+            <p><b>5.</b> ¿Cuál es la raíz cuadrada de 144? <br><input type="text" placeholder="Tu respuesta..."></p>
+            <p><b>6.</b> Calcula el área de un círculo de radio 5. <br><input type="text" placeholder="Tu respuesta...">
+            </p>
+            <p><b>7.</b> ¿Cuál es el logaritmo base 10 de 1000? <br><input type="text" placeholder="Tu respuesta...">
+            </p>
+            <p><b>8.</b> Resuelve: 3(x - 2) = 12 <br><input type="text" placeholder="Tu respuesta..."></p>
+            <p><b>9.</b> ¿Cuál es el Teorema de Pitágoras? Escribe la fórmula. <br><input type="text"
+                    placeholder="Tu respuesta..."></p>
+            <p><b>10.</b> Encuentra la integral indefinida de f(x) = 2x. <br><input type="text"
+                    placeholder="Tu respuesta..."></p>
+        </div>
+        <button
+            style="padding: 15px 30px; background: #2ecc71; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;"
+            onclick="finishExam()">Entregar Examen</button>
     </div>
 
     <script>

@@ -1,0 +1,46 @@
+name: Release Integrity Agent
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install
+
+      - name: Compile Windows Executable
+        run: bun build ./index.ts --compile --outfile integrity-agent.exe
+        
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrity-agent
+          path: integrity-agent.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: integrity-agent.exe
+          tag_name: latest
+          name: Latest Release
+          body: "Compilación automática del Agente Local de Integridad."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
