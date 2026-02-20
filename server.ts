@@ -77,6 +77,8 @@ export function startServer() {
                     if (data.event === "EXAM_FINISHED") {
                         console.log("🏁 Examen Terminado de forma segura. Liberando OS...");
                         cleanupAgent();
+                        console.log("👋 Cerrando el Agente Local automáticamente...");
+                        setTimeout(() => process.exit(0), 1000);
                     }
 
                 } catch (e) {
