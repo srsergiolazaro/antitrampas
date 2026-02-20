@@ -2,7 +2,6 @@ import { PORT, EXAM_TOKEN, AGENT_SECRET } from "./config";
 import { createHmac } from "node:crypto";
 import { startScreenRecording, stopScreenRecording } from "./recorder";
 import { detectVirtualMachine, detectMultipleMonitors, startClipboardAnnihilator, stopClipboardAnnihilator } from "./system-checks";
-import { manageNetwork } from "./network";
 import { killForbiddenProcesses } from "./processes";
 import { listenForDevExit } from "./dev-mode";
 
@@ -53,8 +52,6 @@ export function startServer() {
                             return;
                         }
 
-                        // Empezar a cortar el sistema
-                        manageNetwork(true);
                         startClipboardAnnihilator();
                         listenForDevExit(); // Solo si está activo
 
@@ -101,7 +98,6 @@ export function startServer() {
 // Limpieza del Agente
 export function cleanupAgent() {
     examInProgress = false;
-    manageNetwork(false);
     stopClipboardAnnihilator();
     if (monitorInterval) clearInterval(monitorInterval);
 }

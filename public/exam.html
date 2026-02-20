@@ -175,14 +175,28 @@
             ws.onclose = () => {
                 document.getElementById("connection-status").className = "status disconnected";
                 document.getElementById("connection-status").textContent = "Agente Desconectado";
+
+                // Zero-Trust Lock: Si el examen está activo y el WS se cierra, bloquemos la pantalla de inmediato
                 if (isExamActive) {
-                    alert("¡Te desconectaste del Agente Central! Examen suspendido.");
-                    location.reload();
+                    lockDomFromCheat();
                 } else {
                     // Reintentar si aún no empezó
                     setTimeout(connectToAgent, 2000);
                 }
             };
+        }
+
+        // Bloqueo total si se pierde la conexión
+        function lockDomFromCheat() {
+            document.getElementById("lock-screen").style.display = "flex";
+            document.getElementById("lock-title").textContent = "¡CONEXIÓN PERDIDA!";
+            document.getElementById("lock-title").style.color = "#e74c3c";
+            document.getElementById("lock-desc").innerHTML = "Has cerrado el Agente Guardián de fondo o ha muerto. <b>El examen ha sido suspendido y bloqueado por seguridad.</b><br><br>Abre nuevamente el Agente `.exe` y la página restaurará tu sesión.";
+            document.getElementById("btn-download").style.display = "none";
+            document.getElementById("btn-fullscreen").style.display = "none";
+
+            // Reintentar conexión silenciosamente en el fondo
+            setTimeout(connectToAgent, 2000);
         }
 
         // Iniciar el examen (Pide FullScreen y le avisa al Agente)
@@ -252,6 +266,17 @@
                 e.preventDefault();
             }
         });
+
+        // Heartbeat Zero-Trust Continuo: Verifica que la conexión sea de carne y hueso cada 1s.
+        setInterval(() => {
+            if (isExamActive && (!ws || ws.readyState !== WebSocket.OPEN)) {
+                lockDomFromCheat();
+            } else if (isExamActive && ws && ws.readyState === WebSocket.OPEN && document.getElementById("lock-screen").style.display === "flex") {
+                // Si estaba bloqueado pero revivió el ping
+                document.getElementById("lock-screen").style.display = "none";
+                document.documentElement.requestFullscreen().catch(() => { });
+            }
+        }, 1000);
 
         // Iniciar intento de conexión al abrir
         connectToAgent();

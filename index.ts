@@ -1,4 +1,3 @@
-import { checkPrivileges, manageNetwork } from "./network";
 import { killForbiddenProcesses } from "./processes";
 import { startServer } from "./server";
 import { PORT, EXAM_URL } from "./config";
@@ -13,9 +12,6 @@ async function monitorLoop() {
 async function bootstrap() {
     console.log("🚀 Iniciando Integrity Agent (Hardened & Orchestrated)...");
 
-    // Validar permisos de Administrador obligatoriamente antes de iniciar
-    checkPrivileges();
-
     // Iniciar servidor local (WS Hub y Archivos Estáticos)
     startServer();
 
@@ -24,7 +20,6 @@ async function bootstrap() {
 
 // Limpieza elegante
 export function cleanup() {
-    manageNetwork(false);
     stopClipboardAnnihilator();
 }
 
