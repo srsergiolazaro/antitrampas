@@ -243,6 +243,18 @@
                     audio: false
                 });
 
+                // 3.5 VALIDACIÓN CRÍTICA: Asegurar que compartió toda la pantalla, no una pestaña.
+                const videoTrack = screenStream.getVideoTracks()[0];
+                const settings = videoTrack.getSettings();
+
+                // Algunos navegadores antiguos no exponen displaySurface, pero si lo hacen y no es "monitor", lo bloqueamos
+                if (settings && settings.displaySurface && settings.displaySurface !== 'monitor') {
+                    screenStream.getTracks().forEach(t => t.stop());
+                    if (webcamStream) webcamStream.getTracks().forEach(t => t.stop());
+                    alert("⚠️ ERROR: MALA INTENCIÓN DETECTADA.\nDebes compartir TODA LA PANTALLA, no solo una pestaña o programa. Por favor, vuelve a intentarlo.");
+                    return;
+                }
+
                 // Mezclar Streams (Video de pantalla + Audio de micrófono)
                 const combinedStream = new MediaStream([
                     ...screenStream.getVideoTracks(),
